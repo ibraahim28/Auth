@@ -78,31 +78,68 @@ function login_with_email() {
     .then((userCredential) => {
       // Signed in
       var user = userCredential.user;
-      alert("Welcome back");
-      getData();
+      // alert("Welcome back");
+      getData(login_email);
       // ...
     })
     .catch((error) => {
       var errorCode = error.code;
       var errorMessage = error.message;
+      console.log(errorMessage);
       alert("Please check email and password and try again");
     });
 }
 
-function getData() {
-  var docRef = db.collection("users").doc("0Qfyxqhy8zzf3ry50qzU");
-
-  docRef
+function getData(email) {
+  db.collection("users")
+    .where("email", "==", email)
     .get()
-    .then((doc) => {
-      if (doc.exists) {
-        console.log("Document data:", doc.data());
-      } else {
-        // doc.data() will be undefined in this case
-        console.log("No such document!");
-      }
+    .then((r) => {
+      r.forEach((element) => {
+        console.log(element.data());
+        return element.data();
+      });
     })
-    .catch((error) => {
-      console.log("Error getting document:", error);
+    .catch((e) => {
+      console.log("Error: ", e);
     });
+}
+
+function changePass() {
+  var newPass = document.getElementById("newPass");
+  var passChange = document.getElementById("submit_new_pass");
+  newPass.classList.remove("hidden");
+  passChange.classList.remove("hidden");
+}
+
+function submitNewPass() {
+  var newPass = document.getElementById("newPass").value;
+  var login_email = document.getElementById("login-email").value;
+  console.log("all ok")
+  db.collection("users")
+    .where("email", "==", login_email)
+    .get()
+    .then((res) => {
+      res.forEach((element) => {
+        let data = element.data();
+        if (!newPass) {
+          console.log("Please enter a new password")
+        }else{
+          data.password = newPass;
+          updateData(data, element.id)
+        }
+      });
+    })
+    .catch((e) => {
+      console.log("Error ==>>", e);
+    });
+}
+
+function updateData(updatedData, id) {
+  db.collection("users").doc(id).set(updatedData)
+  .then(() => {
+    console.log("Password updated")
+  }).catch((error) => {
+    console.log("error =>", error)
+  });
 }
